@@ -1,5 +1,5 @@
 import re
-from re import Pattern, Match
+from re import Pattern
 from compiler.Loc import Loc
 from compiler.Token import Token
 

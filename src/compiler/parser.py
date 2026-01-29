@@ -81,6 +81,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         right
       )
 
+
     return left
 
 
@@ -118,4 +119,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
     consume(')')
     return expr
 
-  return parse_expression()
+  def start_parser() -> ast.Expression:
+    if len(tokens) == 0:
+      raise Exception("expected non-empty token list")
+
+    expression = parse_expression()
+
+    if pos < len(tokens):
+      raise Exception(f'{peek().loc}: token was not parsed')
+    return expression
+
+  return start_parser()

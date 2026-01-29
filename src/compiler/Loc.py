@@ -16,4 +16,7 @@ class Loc:
 
     return self.line == other.line and self.col == other.col
 
+  def __str__(self) -> str:
+    return f"({self.line}, {self.col})"
+
 L = Loc(0,0,True)

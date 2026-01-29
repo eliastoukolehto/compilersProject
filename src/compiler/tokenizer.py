@@ -49,3 +49,4 @@ def tokenize(source_code: str) -> list:
     col += 1
     i += 1
   return token_list
+

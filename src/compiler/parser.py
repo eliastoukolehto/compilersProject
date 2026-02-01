@@ -103,6 +103,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
   def parse_factor() -> ast.Expression:
     if peek().text == '(':
       return parse_parenthesized()
+    if peek().text == 'if':
+      return parse_if_statement()
     if peek().type == 'int_literal':
       return parse_int_literal()
     if peek().type == 'identifier':
@@ -110,6 +112,21 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     raise Exception(f'{peek().loc}: expected "(", an integer literal or an identifier')
 
+  def parse_if_statement() -> ast.Expression:
+    consume('if')
+    cond = parse_expression()
+    consume('then')
+    then = parse_expression()
+    if peek().text == 'else':
+      consume('else')
+      els = parse_expression()
+    else:
+      els = None
+    return ast.IfStatement(
+      cond,
+      then,
+      els
+    )
 
   def parse_parenthesized() -> ast.Expression:
     consume('(')

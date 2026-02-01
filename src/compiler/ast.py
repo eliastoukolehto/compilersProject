@@ -20,3 +20,9 @@ class BinaryOp(Expression):
   left: Expression
   op: str
   right: Expression
+
+@dataclass
+class IfStatement(Expression):
+  cond: Expression
+  then: Expression
+  els: Expression | None

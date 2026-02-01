@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement
 
 def test_parser_expression() -> None:
   tokens = [
@@ -103,3 +103,58 @@ def test_double_operator() -> None:
     parse(tokens)
   except Exception as e:
     assert e.args[0] == "(0, 0): expected \"(\", an integer literal or an identifier"
+
+def test_if_statement() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='identifier', text='else'),
+    Token(loc=L, type='identifier', text='baz')
+  ]
+  assert parse(tokens) == IfStatement(cond=Identifier(name='foo'), then=Identifier(name='bar'), els=Identifier(name='baz'))
+
+def test_if_no_else() -> None: 
+  tokens = [
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='bar'),
+  ]
+  assert parse(tokens) == IfStatement(cond=Identifier(name='foo'), then=Identifier(name='bar'), els = None)
+
+def test_if_fails_correctly() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='else'),
+    Token(loc=L, type='identifier', text='baz')
+  ]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "(0, 0): expected \"then\""
+
+def test_nested_if() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='baz')
+  ]
+  assert parse(tokens) == IfStatement(cond=IfStatement(cond=Identifier(name='foo'), then=Identifier(name='bar'), els = None), then=Identifier(name='baz'), els = None)
+
+def test_if_as_expression() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='operator', text='+'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='baz')
+  ]
+  assert parse(tokens) == BinaryOp(left=Identifier(name='foo'), op='+', right=IfStatement(cond=Identifier(name='bar'), then=Identifier(name='baz'), els = None))

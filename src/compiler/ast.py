@@ -26,3 +26,8 @@ class IfStatement(Expression):
   cond: Expression
   then: Expression
   els: Expression | None
+
+@dataclass
+class Function(Expression):
+  name: Identifier
+  args: list[Expression]

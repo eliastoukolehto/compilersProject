@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function
 
 def test_parser_expression() -> None:
   tokens = [
@@ -158,3 +158,16 @@ def test_if_as_expression() -> None:
     Token(loc=L, type='identifier', text='baz')
   ]
   assert parse(tokens) == BinaryOp(left=Identifier(name='foo'), op='+', right=IfStatement(cond=Identifier(name='bar'), then=Identifier(name='baz'), els = None))
+
+def test_function() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='f'),
+    Token(loc=L, type='punctuation', text='('),
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='punctuation', text=','),
+    Token(loc=L, type='identifier', text='y'),
+    Token(loc=L, type='operatror', text='+'),
+    Token(loc=L, type='identifier', text='z'),
+    Token(loc=L, type='punctuation', text=')'),
+  ]
+  assert parse(tokens) == Function(name=Identifier(name='f'), args=[Identifier(name='x'), BinaryOp(left=Identifier(name='y'), op='+', right=Identifier(name='z'))]) 

@@ -1,15 +1,26 @@
 from compiler.Token import Token
 from compiler import ast
 
+precedence_levels = [
+  ['='],
+  ['or'],
+  ['and'],
+  ['==', '!='],
+  ['<', '<=', '>', '>='],
+  ['+', '-'],
+  ['*', '/', '%'],
+]
+
+MAX_LEVEL = len(precedence_levels)-1
+
+right_associative_binary_operators = ['=']
+
+unary_operators = ['not', '-']
+
 def parse(tokens: list[Token]) -> ast.Expression:
   # This keeps track of which token we're looking at.
   pos = 0
 
-  # 'peek()' returns the token at 'pos',
-  # or a special 'end' token if we're past the end
-  # of the token list.
-  # This way we don't have to worry about going past
-  # the end elsewhere.
   def peek() -> Token:
     if pos < len(tokens):
       return tokens[pos]
@@ -19,13 +30,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
       text="",
       )
 
-    # 'consume()' returns the token at 'pos'
-    # and increments 'pos' by one.
-    #
-    # If the optional parameter 'expected' is given,
-    # it checks that the token being consumed has that text.
-    # If 'expected' is a list, then the token must have
-    # one of the texts in the list.
   def consume(expected: str | list[str] | None = None) -> Token:
     nonlocal pos # Python's "nonlocal" lets us modify `pos`
                   # without creating a local variable of the same name.
@@ -48,7 +52,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     token = consume()
     return ast.Literal(int(token.text))
 
-  def parse_identifier() -> ast.Identifier:
+  def parse_identifier() -> ast.Expression:
     if peek().type != 'identifier':
       raise Exception(f'{peek().loc}: expected an identifier')
     token = consume()
@@ -57,45 +61,21 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return func
     return ast.Identifier(str(token.text))
 
-  # This is our main parsing function for this example.
-  # To parse "integer + integer" expressions,
-  # it uses `parse_int_literal` to parse the first integer,
-  # then it checks that there's a supported operator,
-  # and finally it uses `parse_int_literal` to parse the
-  # second integer.
-  def parse_expression() -> ast.Expression:
-    # Parse the first term.
-    left = parse_term()
-
-    # While there are more `+` or '-'...
-    while peek().text in ['+', '-']:
-      # Move past the '+' or '-'.
+  def parse_expression(level: int = 0) -> ast.Expression:
+    if level >= MAX_LEVEL:
+      left = parse_factor()
+    else:
+      left = parse_expression(level+1)
+    while level <= MAX_LEVEL and peek().text in precedence_levels[level]:
       operator_token = consume()
       operator = operator_token.text
 
-      # Parse the operator on the right.
-      right = parse_term()
 
-      # Combine it with the stuff we've
-      # accumulated on the left so far.
-      left = ast.BinaryOp(
-        left,
-        operator,
-        right
-      )
+      if operator in right_associative_binary_operators:
+        right = parse_expression()
+      else:
+        right = parse_expression(level+1)
 
-
-    return left
-
-
-  def parse_term() -> ast.Expression:
-    # Same structure as in 'parse_expression',
-    # but the operators and function calls differ.
-    left = parse_factor()
-    while peek().text in ['*', '/']:
-      operator_token = consume()
-      operator = operator_token.text
-      right = parse_factor()
       left = ast.BinaryOp(
         left,
         operator,
@@ -108,6 +88,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return parse_parenthesized()
     if peek().text == 'if':
       return parse_if_statement()
+    if peek().text in unary_operators:
+      return parse_unary()
     if peek().type == 'int_literal':
       return parse_int_literal()
     if peek().type == 'identifier':
@@ -129,6 +111,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
       cond,
       then,
       els
+    )
+
+  def parse_unary() -> ast.Unary:
+    token = consume()
+    op = token.text
+    right = parse_expression()
+    return ast.Unary(
+      op,
+      right,
     )
 
   def parse_function(identifier: ast.Identifier) -> ast.Expression:

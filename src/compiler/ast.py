@@ -31,3 +31,8 @@ class IfStatement(Expression):
 class Function(Expression):
   name: Identifier
   args: list[Expression]
+
+@dataclass
+class Unary(Expression):
+  op: str
+  right: Expression

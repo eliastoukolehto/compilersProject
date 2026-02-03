@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary
 
 def test_parser_expression() -> None:
   tokens = [
@@ -171,3 +171,23 @@ def test_function() -> None:
     Token(loc=L, type='punctuation', text=')'),
   ]
   assert parse(tokens) == Function(name=Identifier(name='f'), args=[Identifier(name='x'), BinaryOp(left=Identifier(name='y'), op='+', right=Identifier(name='z'))]) 
+
+
+def test_unary_operators() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='and'),
+    Token(loc=L, type='identifier', text='not'),
+    Token(loc=L, type='identifier', text='bar')
+  ]
+  assert parse(tokens) == BinaryOp(left=Identifier(name='foo'), op='and', right=Unary(op='not', right=Identifier(name='bar')))
+
+def test_rigt_associative_assignment() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='c')
+  ]
+  assert parse(tokens) == BinaryOp(left=Identifier(name='a'), op='=', right=BinaryOp(left=Identifier(name='b'), op='=', right=Identifier(name='c')))

@@ -90,6 +90,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return parse_if_statement()
     if peek().text in unary_operators:
       return parse_unary()
+    if peek().text == '{':
+      return parse_block()
     if peek().type == 'int_literal':
       return parse_int_literal()
     if peek().type == 'identifier':
@@ -120,6 +122,29 @@ def parse(tokens: list[Token]) -> ast.Expression:
     return ast.Unary(
       op,
       right,
+    )
+
+  def parse_block() -> ast.Block:
+    statements = []
+    result = None
+    consume('{')
+
+    while True:
+      if peek().text == '}':
+        consume('}')
+        if peek().text == ';':
+          consume(';')
+        break
+      expr = parse_expression()
+      if peek().text == ';':
+        consume(';')
+        statements.append(expr)
+      else:
+        result = expr
+
+    return ast.Block(
+      statements,
+      result
     )
 
   def parse_function(identifier: ast.Identifier) -> ast.Expression:

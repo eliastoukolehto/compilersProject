@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block
 
 def test_parser_expression() -> None:
   tokens = [
@@ -191,3 +191,52 @@ def test_rigt_associative_assignment() -> None:
     Token(loc=L, type='identifier', text='c')
   ]
   assert parse(tokens) == BinaryOp(left=Identifier(name='a'), op='=', right=BinaryOp(left=Identifier(name='b'), op='=', right=Identifier(name='c')))
+
+def test_code_block() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='f'),
+    Token(loc=L, type='punctuation', text='('),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text=')'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='y'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='identifier', text='f'),
+    Token(loc=L, type='punctuation', text='('),
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='punctuation', text=')'),
+    Token(loc=L, type='punctuation', text='}'),
+  ]
+  assert parse(tokens) == Block(statements=[
+    Function(name=Identifier(name='f'), args=[Identifier(name='a')]),
+    BinaryOp(left=Identifier(name='x'), op='=', right=Identifier(name='y'))
+    ],
+    result=Function(name=Identifier(name='f'), args=[Identifier(name='x')]))
+
+def test_block_result_none() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text=';')
+  ]
+  assert parse(tokens) == Block(statements=[Identifier(name='foo'), Identifier(name='bar')], result=None)
+
+def test_block_missing_semicolon() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='punctuation', text='}'),
+  ]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "(0, 0): expected \"(\", an integer literal or an identifier"

@@ -36,3 +36,8 @@ class Function(Expression):
 class Unary(Expression):
   op: str
   right: Expression
+
+@dataclass
+class Block(Expression):
+  statements: list[Expression]
+  result: Expression | None

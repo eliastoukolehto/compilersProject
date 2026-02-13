@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block, Var
 
 def test_parser_expression() -> None:
   tokens = [
@@ -240,3 +240,30 @@ def test_block_missing_semicolon() -> None:
     parse(tokens)
   except Exception as e:
     assert e.args[0] == "(0, 0): expected \"(\", an integer literal or an identifier"
+
+
+def test_var_in_beginning() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='var'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='bar')
+  ]
+  assert parse(tokens) == Var(val=Identifier(name='foo'), init=Identifier(name='bar'))
+
+def test_invalid_var_placement() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='foo'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='identifier', text='var'),
+    Token(loc=L, type='identifier', text='bar'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='baz')
+  ]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "(0, 0): \"var\" is only allowed directly inside blocks {} and in top-level expressions"
+
+

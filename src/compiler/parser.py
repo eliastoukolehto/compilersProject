@@ -11,6 +11,8 @@ precedence_levels = [
   ['*', '/', '%'],
 ]
 
+allowed_before_var = ['{', '}', ';']
+
 MAX_LEVEL = len(precedence_levels)-1
 
 right_associative_binary_operators = ['=']
@@ -29,6 +31,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
       type="end",
       text="",
       )
+
+  def check_var_allowed() -> bool:
+    if pos == 0:
+      return True
+    token = tokens[pos-1]
+    if token.text in allowed_before_var:
+      return True
+    return False
 
   def consume(expected: str | list[str] | None = None) -> Token:
     nonlocal pos # Python's "nonlocal" lets us modify `pos`
@@ -88,6 +98,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return parse_parenthesized()
     if peek().text == 'if':
       return parse_if_statement()
+    if peek().text == 'var':
+      return parse_var()
     if peek().text in unary_operators:
       return parse_unary()
     if peek().text == '{':
@@ -122,6 +134,21 @@ def parse(tokens: list[Token]) -> ast.Expression:
     return ast.Unary(
       op,
       right,
+    )
+
+  def parse_var() -> ast.Var:
+    if check_var_allowed() is False:
+      raise Exception(f'{peek().loc}: "var" is only allowed directly inside blocks {{}} and in top-level expressions')
+    consume('var')
+
+    val = consume()
+    if val.type != 'identifier':
+      raise Exception(f'{val.loc}: expected identifier, found "{val.text}"')
+    consume('=')
+    init = parse_expression()
+    return ast.Var(
+      ast.Identifier(val.text),
+      init
     )
 
   def parse_block() -> ast.Block:

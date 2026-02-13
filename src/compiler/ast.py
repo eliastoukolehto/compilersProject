@@ -41,3 +41,8 @@ class Unary(Expression):
 class Block(Expression):
   statements: list[Expression]
   result: Expression | None
+
+@dataclass
+class Var(Expression):
+  val: Identifier
+  init: Expression

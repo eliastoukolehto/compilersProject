@@ -40,6 +40,12 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return True
     return False
 
+  def check_block_syntax() -> bool:
+    token = tokens[pos-1]
+    if token.text in [';', '}']:
+      return True
+    return False
+
   def consume(expected: str | list[str] | None = None) -> Token:
     nonlocal pos # Python's "nonlocal" lets us modify `pos`
                   # without creating a local variable of the same name.
@@ -156,18 +162,22 @@ def parse(tokens: list[Token]) -> ast.Expression:
     result = None
     consume('{')
 
-    while True:
-      if peek().text == '}':
-        consume('}')
-        if peek().text == ';':
-          consume(';')
-        break
+    while peek().text != '}':
       expr = parse_expression()
       if peek().text == ';':
-        consume(';')
         statements.append(expr)
-      else:
+        consume(';')
+        continue
+      if peek().text == '}':
         result = expr
+        break
+      if check_block_syntax() is False:
+        consume(';')
+      statements.append(expr)
+
+    consume('}')
+    if peek().text == ';':
+      consume(';')
 
     return ast.Block(
       statements,

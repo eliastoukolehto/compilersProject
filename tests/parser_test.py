@@ -239,7 +239,7 @@ def test_block_missing_semicolon() -> None:
   try:
     parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \"(\", an integer literal or an identifier"
+    assert e.args[0] == "(0, 0): expected \";\""
 
 
 def test_var_in_beginning() -> None:
@@ -266,4 +266,130 @@ def test_invalid_var_placement() -> None:
   except Exception as e:
     assert e.args[0] == "(0, 0): \"var\" is only allowed directly inside blocks {} and in top-level expressions"
 
+#optional semicolon tests
 
+#allowed cases
+
+def test_allowed_1() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == Block(statements=[Block(statements=[], result=Identifier(name='a'))], result=Block(statements=[], result=Identifier(name='b')))
+
+def test_allowed_2() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='true'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == Block(statements=[IfStatement(cond=Identifier(name='true'), then=Block(statements=[], result=Identifier(name='a')), els=None)], result=Identifier(name='b')) 
+
+def test_allowed_3() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='true'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == Block(statements=[IfStatement(cond=Identifier(name='true'), then=Block(statements=[], result=Identifier(name='a')), els=None)], result=Identifier(name='b')) 
+
+def test_allowed_4() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='true'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text=';'),
+    Token(loc=L, type='identifier', text='c'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == Block(statements=[IfStatement(cond=Identifier(name='true'), then=Block(statements=[], result=Identifier(name='a')), els=None), Identifier(name='b')], result=Identifier(name='c'))
+
+def test_allowed_5() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='true'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='identifier', text='else'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='identifier', text='c'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == Block(statements=[IfStatement(cond=Identifier(name='true'), then=Block(statements=[], result=Identifier(name='a')), els=Block(statements=[], result=Identifier(name='b')))], result=Identifier(name='c'))
+
+def test_allowed_6() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='f'),
+    Token(loc=L, type='punctuation', text='('),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text=')'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  assert parse(tokens) == BinaryOp(left=Identifier(name='x'), op='=', right=Block(statements=[Block(statements=[], result=Function(name=Identifier(name='f'), args=[Identifier(name='a')]))], result=Block(statements=[], result=Identifier(name='b'))))
+
+def test_not_allowed_1() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "(0, 0): expected \";\""
+
+def test_not_allowed_2() -> None:
+  tokens = [
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='if'),
+    Token(loc=L, type='identifier', text='true'),
+    Token(loc=L, type='identifier', text='then'),
+    Token(loc=L, type='punctuation', text='{'),
+    Token(loc=L, type='identifier', text='a'),
+    Token(loc=L, type='punctuation', text='}'),
+    Token(loc=L, type='identifier', text='b'),
+    Token(loc=L, type='identifier', text='c'),
+    Token(loc=L, type='punctuation', text='}')
+  ]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "(0, 0): expected \";\""

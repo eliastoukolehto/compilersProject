@@ -1,4 +1,5 @@
 from compiler.Token import Token
+from compiler.Loc import Loc
 from compiler import ast
 
 precedence_levels = [
@@ -66,16 +67,16 @@ def parse(tokens: list[Token]) -> ast.Expression:
     if peek().type != 'int_literal':
       raise Exception(f'{peek().loc}: expected an integer literal')
     token = consume()
-    return ast.Literal(int(token.text))
+    return ast.Literal(token.loc, int(token.text))
 
   def parse_identifier() -> ast.Expression:
     if peek().type != 'identifier':
       raise Exception(f'{peek().loc}: expected an identifier')
     token = consume()
     if peek().text == "(":
-      func = parse_function(ast.Identifier(str(token.text)))
+      func = parse_function(ast.Identifier(token.loc, str(token.text)))
       return func
-    return ast.Identifier(str(token.text))
+    return ast.Identifier(token.loc, str(token.text))
 
   def parse_expression(level: int = 0) -> ast.Expression:
     if level >= MAX_LEVEL:
@@ -93,6 +94,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         right = parse_expression(level+1)
 
       left = ast.BinaryOp(
+        operator_token.loc,
         left,
         operator,
         right
@@ -118,7 +120,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     raise Exception(f'{peek().loc}: expected "(", an integer literal or an identifier')
 
   def parse_if_statement() -> ast.Expression:
-    consume('if')
+    if_token = consume('if')
     cond = parse_expression()
     consume('then')
     then = parse_expression()
@@ -128,6 +130,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     else:
       els = None
     return ast.IfStatement(
+      if_token.loc,
       cond,
       then,
       els
@@ -138,6 +141,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     op = token.text
     right = parse_expression()
     return ast.Unary(
+      token.loc,
       op,
       right,
     )
@@ -145,7 +149,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
   def parse_var() -> ast.Var:
     if check_var_allowed() is False:
       raise Exception(f'{peek().loc}: "var" is only allowed directly inside blocks {{}} and in top-level expressions')
-    consume('var')
+    var = consume('var')
 
     val = consume()
     if val.type != 'identifier':
@@ -153,14 +157,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
     consume('=')
     init = parse_expression()
     return ast.Var(
-      ast.Identifier(val.text),
+      var.loc,
+      ast.Identifier(val.loc, val.text),
       init
     )
 
   def parse_block() -> ast.Block:
     statements = []
     result = None
-    consume('{')
+    start_backet = consume('{')
 
     while peek().text != '}':
       expr = parse_expression()
@@ -180,13 +185,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
       consume(';')
 
     return ast.Block(
+      start_backet.loc,
       statements,
       result
     )
 
   def parse_function(identifier: ast.Identifier) -> ast.Expression:
     args = []
-    consume('(')
+    function_start = consume('(')
     while True:
       expr = parse_expression()
       args.append(expr)
@@ -196,6 +202,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(')')
         break
     return ast.Function(
+      loc=function_start.loc,
       name=identifier,
       args=args
     )

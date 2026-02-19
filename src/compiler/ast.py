@@ -1,9 +1,11 @@
 
 from dataclasses import dataclass
+from compiler.Loc import Loc
 
 
 @dataclass
 class Expression:
+  loc: Loc
   """Base class for AST nodes representing expressions."""
 
 @dataclass

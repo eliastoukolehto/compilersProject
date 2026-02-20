@@ -20,5 +20,8 @@ def interpret(node: ast.Expression) -> Value:
     case ast.IfStatement():
       if interpret(node.cond):
         return interpret(node.then)
-
+      if node.els is None:
+        return None
       return interpret(node.els)
+
+  raise Exception("Unknown node type")

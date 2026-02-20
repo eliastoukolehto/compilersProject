@@ -59,7 +59,7 @@ def test_parser_junk() -> None:
     ]
     assert parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): token was not parsed"
+    assert e.args[0] == "(0, 0): expected \";\", found \"5\""
 
 def test_empty_list() -> None:
   try:
@@ -90,7 +90,7 @@ def test_incomplete_parentheses() -> None:
   try:
     parse(tokens) 
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \")\""
+    assert e.args[0] == "(0, 0): expected \")\", found \"<end of file>\""
 
 def test_double_operator() -> None:
   tokens = [
@@ -134,7 +134,7 @@ def test_if_fails_correctly() -> None:
   try:
     parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \"then\""
+    assert e.args[0] == "(0, 0): expected \"then\", found \"else\""
 
 def test_nested_if() -> None:
   tokens = [
@@ -239,7 +239,7 @@ def test_block_missing_semicolon() -> None:
   try:
     parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \";\""
+    assert e.args[0] == "(0, 0): expected \";\", found \"bar\""
 
 
 def test_var_in_beginning() -> None:
@@ -374,7 +374,7 @@ def test_not_allowed_1() -> None:
   try:
     parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \";\""
+    assert e.args[0] == "(0, 0): expected \";\", found \"b\""
 
 def test_not_allowed_2() -> None:
   tokens = [
@@ -392,7 +392,7 @@ def test_not_allowed_2() -> None:
   try:
     parse(tokens)
   except Exception as e:
-    assert e.args[0] == "(0, 0): expected \";\""
+    assert e.args[0] == "(0, 0): expected \";\", found \"c\""
 
 def test_location_test() -> None:
   tokens = [
@@ -430,4 +430,20 @@ def test_multiline_location() -> None:
     BinaryOp(loc=Loc(0,3), left=Identifier(loc=Loc(0,1), name='x'), op='=', right=Identifier(loc=Loc(0,5), name='foo')), 
     BinaryOp(loc=Loc(1,2), left=Identifier(loc=Loc(1,0), name='y'), op='=', right=Identifier(loc=Loc(1,4), name='bar')), 
     BinaryOp(loc=Loc(2,2), left=Identifier(loc=Loc(2,0), name='z'), op='=', right=Identifier(loc=Loc(2,4), name='baz'))], 
+    result=None)
+
+def test_top_level_multi_exp() -> None:
+  tokens = [
+    Token(Loc(0,1), type='identifier', text='x'),
+    Token(Loc(0,3), type='operator', text='='),
+    Token(Loc(0,5), type='identifier', text='foo'),
+    Token(Loc(0,6), type='punctuation', text=';'),
+    Token(Loc(1,0), type='identifier', text='y'),
+    Token(Loc(1,2), type='operator', text='='),
+    Token(Loc(1,4), type='identifier', text='bar'),
+    Token(Loc(1,5), type='punctuation', text=';'),
+  ]
+  assert parse(tokens) == Block(loc=Loc(0,1), statements=[
+    BinaryOp(loc=Loc(0,3), left=Identifier(loc=Loc(0,1), name='x'), op='=', right=Identifier(loc=Loc(0,5), name='foo')),
+    BinaryOp(loc=Loc(1,2), left=Identifier(loc=Loc(1,0), name='y'), op='=', right=Identifier(loc=Loc(1,4), name='bar'))],
     result=None)

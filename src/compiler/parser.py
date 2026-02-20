@@ -1,5 +1,4 @@
 from compiler.Token import Token
-from compiler.Loc import Loc
 from compiler import ast
 
 precedence_levels = [
@@ -30,7 +29,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     return Token(
       loc=tokens[-1].loc,
       type="end",
-      text="",
+      text="<end of file>",
       )
 
   def check_var_allowed() -> bool:
@@ -52,10 +51,10 @@ def parse(tokens: list[Token]) -> ast.Expression:
                   # without creating a local variable of the same name.
     token = peek()
     if isinstance(expected, str) and token.text != expected:
-      raise Exception(f'{token.loc}: expected "{expected}"')
+      raise Exception(f'{token.loc}: expected "{expected}", found \"{token.text}\"')
     if isinstance(expected, list) and token.text not in expected:
       comma_separated = ", ".join([f'"{e}"' for e in expected])
-      raise Exception(f'{token.loc}: expected one of: {comma_separated}')
+      raise Exception(f'{token.loc}: expected one of: {comma_separated}, found \"{token.text}\"')
     pos += 1
     return token
 
@@ -219,10 +218,22 @@ def parse(tokens: list[Token]) -> ast.Expression:
     if len(tokens) == 0:
       raise Exception("expected non-empty token list")
 
-    expression = parse_expression()
+    expressions: list[ast.Expression] = []
+    while pos < len(tokens):
 
-    if pos < len(tokens):
-      raise Exception(f'{peek().loc}: token was not parsed')
-    return expression
+      if pos < len(tokens):
+        expressions.append(parse_expression())
+        if pos < len(tokens):
+          consume(';')
+
+    first_token = tokens[0]
+
+    if len(expressions) == 1:
+      return expressions[0]
+    end_token = tokens[-1]
+    if end_token.text == ';':
+      return ast.Block(loc=first_token.loc, statements=expressions, result=None)
+    result = expressions.pop()
+    return ast.Block(loc=first_token.loc, statements=expressions, result=result)
 
   return start_parser()

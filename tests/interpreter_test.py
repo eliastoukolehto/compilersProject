@@ -32,5 +32,20 @@ def test_boolean_operations() -> None:
   ast = BinaryOp(L,
     left=(BinaryOp(L, left=Literal(L, value=2), op='==', right=Literal(L, value=3))),
     op='or',
-    right=(Unary(L, op='not', right=BinaryOp(L, left=Literal(L, value=2), op='<=', right=Literal(L, value=3)))))
+    right=(Unary(L, op='not', right=BinaryOp(L, left=Literal(L, value=2), op='>=', right=Literal(L, value=3)))))
+  assert interpret(ast, TopLevel) is True
+
+def test_boolean_operators_2() -> None:
+  ast = BinaryOp(L,
+    left=(BinaryOp(L, left=Literal(L, value=True), op='and', right=Literal(L, value=False))),
+    op='or',
+    right=(BinaryOp(L, left=Literal(L, value=True), op='and', right=Literal(L, value=True))))
+  assert interpret(ast, TopLevel) is True
+
+def test_shortcircuit() -> None:
+  ast = Block(L, statements=[
+    Var(L, init=Literal(L, value=False), val=Identifier(L, name='x')),
+    BinaryOp(L, left=Literal(L, value=True), op="or", right=Block(L, statements=[
+      BinaryOp(L, left=Identifier(L, name='x'), op='=', right=(Literal(L, value=True)))], result=(Literal(L, value=True)))
+    )], result=(Identifier(L, name='x')))
   assert interpret(ast, TopLevel) is False

@@ -22,6 +22,13 @@ def interpret(node: ast.Expression, symtab: SymTab) -> Value:
 
     case ast.BinaryOp():
       a: Any = interpret(node.left, symtab)
+
+      if node.op == "or" and a is True:
+        return True
+
+      if node.op == "and" and a is False:
+        return False
+
       b: Any = interpret(node.right, symtab)
 
       current_tab = symtab

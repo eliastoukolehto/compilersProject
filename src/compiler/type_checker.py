@@ -14,12 +14,16 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
         raise Exception(f'Error: {node.loc}: if-clause condition expected boolen, got: \"{t1.type}\"')
       t2 = typecheck(node.then, symtab)
       t3 = typecheck(node.els, symtab)
-      if t2 != t3 and t3.type is not None:
+      if t3.type is not Unit:
+        return t2
+      if t2 != t3:
         raise Exception(f'Error: {node.loc}: if-clause branches must have the same type, got: \"{t2.type}\" and \"{t3.type}\" ')
-      return t3 #maybe?
+      return t2
 
     case ast.Var():
       identifier = node.val.name
       t_expr = typecheck(node.init, symtab)
       symtab.locals[identifier] = t_expr
-      return None
+      return Unit
+
+  raise Exception("Unknown node type")

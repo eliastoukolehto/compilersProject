@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Type:
-  type: type
+  type: type | None
 
 Int = Type(int)
 Unit = Type(None)

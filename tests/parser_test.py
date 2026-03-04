@@ -122,7 +122,7 @@ def test_if_no_else() -> None:
     Token(loc=L, type='identifier', text='then'),
     Token(loc=L, type='identifier', text='bar'),
   ]
-  assert parse(tokens) == IfStatement(L,cond=Identifier(L,name='foo'), then=Identifier(L,name='bar'), els = None)
+  assert parse(tokens) == IfStatement(L,cond=Identifier(L,name='foo'), then=Identifier(L,name='bar'), els =Literal(L,None))
 
 def test_if_fails_correctly() -> None:
   tokens = [
@@ -146,7 +146,7 @@ def test_nested_if() -> None:
     Token(loc=L, type='identifier', text='then'),
     Token(loc=L, type='identifier', text='baz')
   ]
-  assert parse(tokens) == IfStatement(L,cond=IfStatement(L,cond=Identifier(L,name='foo'), then=Identifier(L,name='bar'), els = None), then=Identifier(L,name='baz'), els = None)
+  assert parse(tokens) == IfStatement(L,cond=IfStatement(L,cond=Identifier(L,name='foo'), then=Identifier(L,name='bar'), els =Literal(L,None)), then=Identifier(L,name='baz'), els =Literal(L,None))
 
 def test_if_as_expression() -> None:
   tokens = [
@@ -157,7 +157,7 @@ def test_if_as_expression() -> None:
     Token(loc=L, type='identifier', text='then'),
     Token(loc=L, type='identifier', text='baz')
   ]
-  assert parse(tokens) == BinaryOp(L,left=Identifier(L,name='foo'), op='+', right=IfStatement(L,cond=Identifier(L,name='bar'), then=Identifier(L,name='baz'), els = None))
+  assert parse(tokens) == BinaryOp(L,left=Identifier(L,name='foo'), op='+', right=IfStatement(L,cond=Identifier(L,name='bar'), then=Identifier(L,name='baz'), els =Literal(L,None)))
 
 def test_function() -> None:
   tokens = [
@@ -226,7 +226,7 @@ def test_block_result_none() -> None:
     Token(loc=L, type='punctuation', text='}'),
     Token(loc=L, type='punctuation', text=';')
   ]
-  assert parse(tokens) == Block(L,statements=[Identifier(L,name='foo'), Identifier(L,name='bar')], result=None)
+  assert parse(tokens) == Block(L,statements=[Identifier(L,name='foo'), Identifier(L,name='bar')], result=Literal(L,None))
 
 def test_block_missing_semicolon() -> None:
   tokens = [
@@ -295,7 +295,7 @@ def test_allowed_2() -> None:
     Token(loc=L, type='identifier', text='b'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=None)], result=Identifier(L,name='b')) 
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
 
 def test_allowed_3() -> None:
   tokens = [
@@ -310,7 +310,7 @@ def test_allowed_3() -> None:
     Token(loc=L, type='identifier', text='b'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=None)], result=Identifier(L,name='b')) 
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
 
 def test_allowed_4() -> None:
   tokens = [
@@ -326,7 +326,7 @@ def test_allowed_4() -> None:
     Token(loc=L, type='identifier', text='c'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=None), Identifier(L,name='b')], result=Identifier(L,name='c'))
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None)), Identifier(L,name='b')], result=Identifier(L,name='c'))
 
 def test_allowed_5() -> None:
   tokens = [
@@ -430,7 +430,7 @@ def test_multiline_location() -> None:
     BinaryOp(loc=Loc(0,3), left=Identifier(loc=Loc(0,1), name='x'), op='=', right=Identifier(loc=Loc(0,5), name='foo')), 
     BinaryOp(loc=Loc(1,2), left=Identifier(loc=Loc(1,0), name='y'), op='=', right=Identifier(loc=Loc(1,4), name='bar')), 
     BinaryOp(loc=Loc(2,2), left=Identifier(loc=Loc(2,0), name='z'), op='=', right=Identifier(loc=Loc(2,4), name='baz'))], 
-    result=None)
+    result=Literal(L,None))
 
 def test_top_level_multi_exp() -> None:
   tokens = [
@@ -446,4 +446,4 @@ def test_top_level_multi_exp() -> None:
   assert parse(tokens) == Block(loc=Loc(0,1), statements=[
     BinaryOp(loc=Loc(0,3), left=Identifier(loc=Loc(0,1), name='x'), op='=', right=Identifier(loc=Loc(0,5), name='foo')),
     BinaryOp(loc=Loc(1,2), left=Identifier(loc=Loc(1,0), name='y'), op='=', right=Identifier(loc=Loc(1,4), name='bar'))],
-    result=None)
+    result=Literal(L,None))

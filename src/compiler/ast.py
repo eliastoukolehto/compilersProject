@@ -10,7 +10,7 @@ class Expression:
 
 @dataclass
 class Literal(Expression):
-  value: int | bool
+  value: int | bool | None
 
 @dataclass
 class Identifier(Expression):
@@ -27,7 +27,7 @@ class BinaryOp(Expression):
 class IfStatement(Expression):
   cond: Expression
   then: Expression
-  els: Expression | None
+  els: Expression
 
 @dataclass
 class Function(Expression):
@@ -42,7 +42,7 @@ class Unary(Expression):
 @dataclass
 class Block(Expression):
   statements: list[Expression]
-  result: Expression | None
+  result: Expression
 
 @dataclass
 class Var(Expression):

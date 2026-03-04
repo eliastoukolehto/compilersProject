@@ -127,7 +127,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
       consume('else')
       els = parse_expression()
     else:
-      els = None
+      els = ast.Literal(peek().loc, None)
     return ast.IfStatement(
       if_token.loc,
       cond,
@@ -163,8 +163,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
   def parse_block() -> ast.Block:
     statements = []
-    result = None
     start_backet = consume('{')
+    result: ast.Expression = ast.Literal(start_backet.loc, None)
 
     while peek().text != '}':
       expr = parse_expression()
@@ -232,7 +232,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return expressions[0]
     end_token = tokens[-1]
     if end_token.text == ';':
-      return ast.Block(loc=first_token.loc, statements=expressions, result=None)
+      return ast.Block(loc=first_token.loc, statements=expressions, result=ast.Literal(end_token.loc, None))
     result = expressions.pop()
     return ast.Block(loc=first_token.loc, statements=expressions, result=result)
 

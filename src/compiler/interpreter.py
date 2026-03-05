@@ -29,6 +29,22 @@ def interpret(node: ast.Expression, symtab: SymTab) -> Value:
       if node.op == "and" and a is False:
         return False
 
+      if node.op == '=':
+
+        if isinstance(node.left, ast.Identifier):
+          identifier = node.left.name
+          current_tab = symtab
+          while True:
+            if identifier not in current_tab.locals.keys():
+              if current_tab.parent:
+                current_tab = current_tab.parent
+              else:
+                raise Exception(f'Error: {node.loc}: Variable not found: \"{identifier}\"')
+            else:
+              expr = interpret(node.right, symtab)
+              current_tab.locals[identifier] = expr
+              return expr
+
       b: Any = interpret(node.right, symtab)
 
       current_tab = symtab

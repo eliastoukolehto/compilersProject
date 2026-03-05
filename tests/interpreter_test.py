@@ -53,3 +53,6 @@ def test_if_then_else() -> None:
   ast = IfStatement(L, cond=(BinaryOp(L, left=Literal(L, value=2), op='==', right=Literal(L, value=3))), then=(Literal(L, value=False)), els=Literal(L, value=True))
   assert interpret(ast, TopLevel) is True
 
+def test_interpret_variable_reassign() -> None:
+  ast = Block(L, statements=[Var(L, val=Identifier(L, name='x'), init=Literal(L, value=4)), BinaryOp(L, left=Identifier(L, name='x'),  op='=', right=Literal(L, value=3))], result=Identifier(L, name='x'))
+  assert interpret(ast, TopLevel) == 3

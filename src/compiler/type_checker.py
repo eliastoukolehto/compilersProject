@@ -5,8 +5,13 @@ from compiler.symtab import SymTab
 def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
   match node:
     case ast.Literal():
-      return Int
-      #Gotta fix parser oopsie
+      if isinstance(node.value, bool):
+        return Bool
+      if isinstance(node.value, int):
+        return Int
+      if node.value is None:
+        return Unit
+      raise Exception('unknown literal type')
 
     case ast.IfStatement():
       t1 = typecheck(node.cond, symtab)
@@ -25,5 +30,10 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
       t_expr = typecheck(node.init, symtab)
       symtab.locals[identifier] = t_expr
       return Unit
+    
+    case ast.BinaryOp():
+      t1 = typecheck(node.left, symtab)
+      t2 = typecheck(node.right, symtab)
+      
 
   raise Exception("Unknown node type")

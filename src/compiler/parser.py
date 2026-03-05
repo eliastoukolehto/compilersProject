@@ -72,6 +72,10 @@ def parse(tokens: list[Token]) -> ast.Expression:
     if peek().type != 'identifier':
       raise Exception(f'{peek().loc}: expected an identifier')
     token = consume()
+    if token.text == "true":
+      return ast.Literal(token.loc, True)
+    if token.text == "false":
+      return ast.Literal(token.loc, False)
     if peek().text == "(":
       func = parse_function(ast.Identifier(token.loc, str(token.text)))
       return func

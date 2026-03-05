@@ -295,7 +295,7 @@ def test_allowed_2() -> None:
     Token(loc=L, type='identifier', text='b'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Literal(L, True), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
 
 def test_allowed_3() -> None:
   tokens = [
@@ -310,7 +310,7 @@ def test_allowed_3() -> None:
     Token(loc=L, type='identifier', text='b'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Literal(L, True), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None))], result=Identifier(L,name='b')) 
 
 def test_allowed_4() -> None:
   tokens = [
@@ -326,7 +326,7 @@ def test_allowed_4() -> None:
     Token(loc=L, type='identifier', text='c'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None)), Identifier(L,name='b')], result=Identifier(L,name='c'))
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Literal(L, True), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Literal(L,None)), Identifier(L,name='b')], result=Identifier(L,name='c'))
 
 def test_allowed_5() -> None:
   tokens = [
@@ -344,7 +344,7 @@ def test_allowed_5() -> None:
     Token(loc=L, type='identifier', text='c'),
     Token(loc=L, type='punctuation', text='}')
   ]
-  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Identifier(L,name='true'), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Block(L,statements=[], result=Identifier(L,name='b')))], result=Identifier(L,name='c'))
+  assert parse(tokens) == Block(L,statements=[IfStatement(L,cond=Literal(L, True), then=Block(L,statements=[], result=Identifier(L,name='a')), els=Block(L,statements=[], result=Identifier(L,name='b')))], result=Identifier(L,name='c'))
 
 def test_allowed_6() -> None:
   tokens = [

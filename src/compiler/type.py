@@ -2,7 +2,12 @@ from dataclasses import dataclass
 
 @dataclass
 class Type:
-  type: type | None
+  name: type | None
+
+@dataclass
+class FunType:
+  params: tuple
+  ret: Type
 
 Int = Type(int)
 Unit = Type(None)

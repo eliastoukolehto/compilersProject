@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from compiler.type import FunType, Int, Unit, Bool
 
 @dataclass
 class SymTab:
@@ -20,10 +21,10 @@ def op_slash(a:int,b:int) -> int:
 def op_modulo(a:int,b:int) -> int:
   return a % b
 
-def op_eq(a:bool,b:bool) -> bool:
+def op_eq(a:int|bool,b:int|bool) -> bool:
   return a == b
 
-def op_not_eq(a:int,b:int) -> bool:
+def op_not_eq(a:int|bool,b:int|bool) -> bool:
   return a != b
 
 def op_lt(a:int,b:int) -> bool:
@@ -67,3 +68,19 @@ TopLevel = SymTab({
     'unary_not': op_not,
     'unary_-': op_unary_minus
   }, None)
+
+TopType = SymTab({
+  '+': FunType((Int, Int), Int),
+  '-': FunType((Int, Int), Int),
+  '*': FunType((Int, Int), Int),
+  '/': FunType((Int, Int), Int),
+  '%': FunType((Int, Int), Int),
+  '<': FunType((Int, Int), Bool),
+  '<=': FunType((Int, Int), Bool),
+  '>': FunType((Int, Int), Bool),
+  '>=': FunType((Int, Int), Bool),
+  'and': FunType((Bool, Bool), Bool),
+  'or': FunType((Bool, Bool), Bool),
+  'unary_not': FunType((Bool,Unit), Bool),
+  'unary_-': FunType((Int,Unit), Int)
+}, None)

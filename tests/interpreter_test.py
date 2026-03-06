@@ -1,6 +1,6 @@
 from compiler.interpreter import interpret
 from compiler.Loc import L
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Unary, Block, Var
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Unary, Block, Var, While
 from compiler.symtab import TopLevel
 
 def test_interpret_expression() -> None:
@@ -56,3 +56,21 @@ def test_if_then_else() -> None:
 def test_interpret_variable_reassign() -> None:
   ast = Block(L, statements=[Var(L, val=Identifier(L, name='x'), init=Literal(L, value=4)), BinaryOp(L, left=Identifier(L, name='x'),  op='=', right=Literal(L, value=3))], result=Identifier(L, name='x'))
   assert interpret(ast, TopLevel) == 3
+
+def test_while() -> None:
+  ast = Block(L, statements=[
+    Var(L, val=Identifier(L, name='x'), init=Literal(L, value=1)),
+    While(L,
+      cond=BinaryOp(L, left=Identifier(L, name='x'), op='<', right=Literal(L, value=10)),
+      then=BinaryOp(L, left=Identifier(L, name='x'), op='=', right=BinaryOp(L, left=Identifier(L, name='x'), op='+', right=Literal(L, value=1)))
+    )],
+    result=Identifier(L, name='x'))
+  assert interpret(ast, TopLevel) == 10
+
+def test_while_no_return() -> None:
+  ast = Block(L, statements=[Var(L, val=Identifier(L, name='x'), init=Literal(L, value=1)),],
+    result=While(L,
+      cond=BinaryOp(L, left=Identifier(L, name='x'), op='<', right=Literal(L, value=10)),
+      then=BinaryOp(L, left=Identifier(L, name='x'), op='=', right=BinaryOp(L, left=Identifier(L, name='x'), op='+', right=Literal(L, value=1)))
+    ))
+  assert interpret(ast, TopLevel) is None

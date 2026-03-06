@@ -48,3 +48,8 @@ class Block(Expression):
 class Var(Expression):
   val: Identifier
   init: Expression
+
+@dataclass
+class While(Expression):
+  cond: Expression
+  then: Expression

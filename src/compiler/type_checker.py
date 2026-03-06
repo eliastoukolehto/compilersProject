@@ -75,9 +75,9 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
         else:
           funtype: FunType = current_tab.locals[node.op]
           if funtype.params[0] != t1:
-            raise Exception(f'Error: Operator \"{node.op}\" left side expected {funtype.params[0]}, got {t1}')
+            raise Exception(f'Error: {node.loc}: Operator \"{node.op}\" left side expected {funtype.params[0]}, got {t1}')
           if funtype.params[1] != t2:
-            raise Exception(f'Error: Operator \"{node.op}\" left side expected {funtype.params[0]}, got {t1}')
+            raise Exception(f'Error: {node.loc}: Operator \"{node.op}\" left side expected {funtype.params[0]}, got {t1}')
 
           return funtype.ret
 
@@ -93,7 +93,13 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
         else:
           funtype2: FunType = current_tab.locals[f"unary_{node.op}"]
           if funtype2.params[0] != t:
-            raise Exception(f'Error: Operator \"unary_{node.op}\" left side expected {funtype2.params[0]}, got {t}')
+            raise Exception(f'Error: {node.loc}: Operator \"unary_{node.op}\" left side expected {funtype2.params[0]}, got {t}')
           return funtype2.ret
+
+    case ast.While():
+      t = typecheck(node.cond, symtab)
+      if t != Bool:
+        raise Exception(f'Error: {node.loc}: while-loop condition expected boolean, got {t}')
+      return Unit
 
   raise Exception("Unknown node type")

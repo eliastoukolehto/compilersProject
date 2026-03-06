@@ -90,5 +90,11 @@ def interpret(node: ast.Expression, symtab: SymTab) -> Value:
         else:
           return current_tab.locals[f"unary_{node.op}"](c)
 
+    case ast.While():
+      while interpret(node.cond, symtab):
+        interpret(node.then, symtab)
+      return None
+
+
 
   raise Exception("Unknown node type")

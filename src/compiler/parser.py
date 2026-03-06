@@ -111,6 +111,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
       return parse_if_statement()
     if peek().text == 'var':
       return parse_var()
+    if peek().text == 'while':
+      return parse_while()
     if peek().text in unary_operators:
       return parse_unary()
     if peek().text == '{':
@@ -217,6 +219,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
     expr = parse_expression()
     consume(')')
     return expr
+
+  def parse_while() -> ast.Expression:
+    start_token = consume('while')
+    cond = parse_expression()
+    consume('do')
+    then = parse_expression()
+
+    return ast.While(start_token.loc, cond=cond, then=then)
 
   def start_parser() -> ast.Expression:
     if len(tokens) == 0:

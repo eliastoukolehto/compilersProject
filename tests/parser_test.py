@@ -1,7 +1,7 @@
 from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L, Loc
-from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block, Var
+from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block, Var, While
 
 def test_parser_expression() -> None:
   tokens = [
@@ -447,3 +447,31 @@ def test_top_level_multi_exp() -> None:
     BinaryOp(loc=Loc(0,3), left=Identifier(loc=Loc(0,1), name='x'), op='=', right=Identifier(loc=Loc(0,5), name='foo')),
     BinaryOp(loc=Loc(1,2), left=Identifier(loc=Loc(1,0), name='y'), op='=', right=Identifier(loc=Loc(1,4), name='bar'))],
     result=Literal(L,None))
+
+def test_while() -> None:
+  tokens = [
+    Token(L, type='identifier', text='var'),
+    Token(L, type='identifier', text='x'),
+    Token(L, type='operator', text='='),
+    Token(L, type='int_literal', text='1'),
+    Token(L, type='punctuation', text=';'),
+    Token(L, type='identifier', text='while'),
+    Token(L, type='identifier', text='x'),
+    Token(L, type='operator', text='<'),
+    Token(L, type='int_literal', text='10'),
+    Token(L, type='identifier', text='do'),
+    Token(L, type='identifier', text='x'),
+    Token(L, type='operator', text='='),
+    Token(L, type='identifier', text='x'),
+    Token(L, type='operator', text='+'),
+    Token(L, type='int_literal', text='1'),
+    Token(L, type='punctuation', text=';'),
+    Token(L, type='identifier', text='x')
+  ]
+  assert parse(tokens) == Block(L, statements=[
+    Var(L, val=Identifier(L, name='x'), init=Literal(L, value=1)),
+    While(L,
+      cond=BinaryOp(L, left=Identifier(L, name='x'), op='<', right=Literal(L, value=10)),
+      then=BinaryOp(L, left=Identifier(L, name='x'), op='=', right=BinaryOp(L, left=Identifier(L, name='x'), op='+', right=Literal(L, value=1)))
+    )],
+    result=Identifier(L, name='x'))

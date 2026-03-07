@@ -102,4 +102,26 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
         raise Exception(f'Error: {node.loc}: while-loop condition expected boolean, got {t}')
       return Unit
 
+    case ast.Function():
+      #t = typecheck(node.name, symtab)
+      current_tab = symtab
+      while True:
+        name = node.name
+        keys = current_tab.locals.keys()
+        if name.name not in keys:
+          if current_tab.parent:
+            current_tab = current_tab.parent
+          else:
+            raise Exception(f'Error: {node.loc}: Unknown function: \"{node.name.name}"')
+        else:
+          fun: FunType = current_tab.locals[node.name.name]
+          break
+      if len(fun.params) != len(node.args):
+        raise Exception(f'Error: {node.loc}: Function \"{node.name.name}\" expects {len(fun.params) } parameters, but {len(node.args)} were given')
+      for i, expr in enumerate(node.args):
+        arg = typecheck(node.args[i], symtab)
+        if fun.params[i] != arg:
+          raise Exception(f'Error: {node.loc}: Function \"{node.name.name}\" parameter {i} expects {fun.params[i]}, but {arg} was given')
+      return fun.ret
+
   raise Exception("Unknown node type")

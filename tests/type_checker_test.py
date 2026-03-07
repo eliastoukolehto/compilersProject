@@ -1,5 +1,5 @@
 from compiler.type_checker import typecheck
-from compiler.ast import Literal, Var, Identifier, Block, BinaryOp, Unary, IfStatement, While
+from compiler.ast import Literal, Var, Identifier, Block, BinaryOp, Unary, IfStatement, While, Function
 from compiler.symtab import TopType
 from compiler.Loc import L
 from compiler.type import Int, Unit, Bool
@@ -90,3 +90,32 @@ def test_while() -> None:
     then=BinaryOp(L, left=Identifier(L, name='x'), op='=', right=BinaryOp(L, left=Identifier(L, name='x'), op='+', right=Literal(L, value=1)))
   ))
   assert typecheck(ast, TopType) == Unit
+
+def test_builtin_functions() -> None:
+  ast1 = Function(L, args=[Literal(L, value=1)],  name=Identifier(L, name='print_int'))
+  ast2 = Function(L, args=[Literal(L, value=True)],  name=Identifier(L, name='print_bool'))
+  ast3 = Function(L, args=[],  name=Identifier(L, name='read_int'))
+  assert typecheck(ast1, TopType) == Unit
+  assert typecheck(ast2, TopType) == Unit
+  assert typecheck(ast3, TopType) == Int
+
+def test_function_too_many_args() -> None:
+  ast = Function(L, args=[Literal(L, value=1), Literal(L, value=2)],  name=Identifier(L, name='print_int'))
+  try:
+    typecheck(ast, TopType)
+  except Exception as e:
+    assert e.args[0] == "Error: (0, 0): Function \"print_int\" expects 1 parameters, but 2 were given"
+
+def test_func_wrong_type() -> None:
+  ast = Function(L, args=[Literal(L, value=False)],  name=Identifier(L, name='print_int'))
+  try:
+    typecheck(ast, TopType)
+  except Exception as e:
+    assert e.args[0] == "Error: (0, 0): Function \"print_int\" parameter 0 expects Type(name=<class 'int'>), but Type(name=<class 'bool'>) was given"
+
+def test_invalid_func() -> None:
+  ast = Function(L, args=[Literal(L, value=False)],  name=Identifier(L, name='noninit_func'))
+  try:
+    typecheck(ast, TopType)
+  except Exception as e:
+    assert e.args[0] == "Error: (0, 0): Unknown function: \"noninit_func\""

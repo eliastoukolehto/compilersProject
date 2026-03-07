@@ -82,5 +82,8 @@ TopType = SymTab({
   'and': FunType((Bool, Bool), Bool),
   'or': FunType((Bool, Bool), Bool),
   'unary_not': FunType((Bool,Unit), Bool),
-  'unary_-': FunType((Int,Unit), Int)
+  'unary_-': FunType((Int,Unit), Int),
+  'print_int': FunType((Int,), Unit),
+  'print_bool': FunType((Bool,), Unit),
+  'read_int': FunType((), Int)
 }, None)

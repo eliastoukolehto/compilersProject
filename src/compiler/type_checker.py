@@ -30,6 +30,7 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
     case ast.Var():
       identifier = node.val.name
       t_expr = typecheck(node.init, symtab)
+      
       symtab.locals[identifier] = t_expr
       return Unit
 
@@ -119,7 +120,7 @@ def typecheck(node: ast.Expression, symtab: SymTab) -> Type:
       if len(fun.params) != len(node.args):
         raise Exception(f'Error: {node.loc}: Function \"{node.name.name}\" expects {len(fun.params) } parameters, but {len(node.args)} were given')
       for i, expr in enumerate(node.args):
-        arg = typecheck(node.args[i], symtab)
+        arg = typecheck(expr, symtab)
         if fun.params[i] != arg:
           raise Exception(f'Error: {node.loc}: Function \"{node.name.name}\" parameter {i} expects {fun.params[i]}, but {arg} was given')
       return fun.ret

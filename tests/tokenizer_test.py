@@ -29,8 +29,16 @@ def test_tokenizer_punc() -> None:
                                      Token(L, type="int_literal", text="7"),
                                      Token(L, type="punctuation", text=")"),
                                      Token(L, type="punctuation", text="}")]
-  
+
 def test_tokenizer_comment_loc() -> None:
   assert tokenize("3 #comment\n4//comment 5\n#6\n7") == [Token(Loc(0,0), type="int_literal", text="3"),
                                      Token(Loc(1,0), type="int_literal", text="4"),
                                      Token(Loc(3,0), type="int_literal", text="7")]
+
+def test_tokenize_declared_var() -> None:
+  assert tokenize("var x: Bool = True") == [Token(loc=L, type='identifier', text='var'),
+                                            Token(loc=L, type='identifier', text='x'),
+                                            Token(loc=L, type='punctuation', text=':'),
+                                            Token(loc=L, type='identifier', text='Bool'),
+                                            Token(loc=L, type='operator', text='='),
+                                            Token(loc=L, type='identifier', text='True')]

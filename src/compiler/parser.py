@@ -1,5 +1,6 @@
 from compiler.Token import Token
-from compiler import ast
+from compiler import ast, Loc
+from compiler.type import Bool, Int, Type
 
 precedence_levels = [
   ['='],
@@ -18,6 +19,13 @@ MAX_LEVEL = len(precedence_levels)-1
 right_associative_binary_operators = ['=']
 
 unary_operators = ['not', '-']
+
+def get_type(s: str, l: Loc.Loc) -> Type:
+  if s == 'Bool':
+    return Bool
+  if s == 'Int':
+    return Int
+  raise Exception(f'Error: {l}: Unknown type: {s}')
 
 def parse(tokens: list[Token]) -> ast.Expression:
   # This keeps track of which token we're looking at.
@@ -154,9 +162,16 @@ def parse(tokens: list[Token]) -> ast.Expression:
   def parse_var() -> ast.Var:
     if check_var_allowed() is False:
       raise Exception(f'{peek().loc}: "var" is only allowed directly inside blocks {{}} and in top-level expressions')
+    var_type = None
     var = consume('var')
 
     val = consume()
+
+    if peek().text == ':':
+      consume(':')
+      t = consume()
+      var_type = get_type(t.text, t.loc)
+
     if val.type != 'identifier':
       raise Exception(f'{val.loc}: expected identifier, found "{val.text}"')
     consume('=')
@@ -164,7 +179,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
     return ast.Var(
       var.loc,
       ast.Identifier(val.loc, val.text),
-      init
+      init,
+      var_type
     )
 
   def parse_block() -> ast.Block:

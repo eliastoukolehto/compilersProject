@@ -2,6 +2,7 @@ from compiler.parser import parse
 from compiler.Token import Token
 from compiler.Loc import L, Loc
 from compiler.ast import BinaryOp, Literal, Identifier, IfStatement, Function, Unary, Block, Var, While
+from compiler.type import Bool
 
 def test_parser_expression() -> None:
   tokens = [
@@ -475,3 +476,26 @@ def test_while() -> None:
       then=BinaryOp(L, left=Identifier(L, name='x'), op='=', right=BinaryOp(L, left=Identifier(L, name='x'), op='+', right=Literal(L, value=1)))
     )],
     result=Identifier(L, name='x'))
+
+def test_parse_typed_var() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='var'),
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='punctuation', text=':'),
+    Token(loc=L, type='identifier', text='Bool'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='True')]
+  assert parse(tokens) == Var(L, val=Identifier(L, name='x'), init=Identifier(L, name='True'), type=Bool)
+
+def test_parse_mistyped_var() -> None:
+  tokens = [
+    Token(loc=L, type='identifier', text='var'),
+    Token(loc=L, type='identifier', text='x'),
+    Token(loc=L, type='punctuation', text=':'),
+    Token(loc=L, type='identifier', text='mytype'),
+    Token(loc=L, type='operator', text='='),
+    Token(loc=L, type='identifier', text='True')]
+  try:
+    parse(tokens)
+  except Exception as e:
+    assert e.args[0] == "Error: (0, 0): Unknown type: mytype"

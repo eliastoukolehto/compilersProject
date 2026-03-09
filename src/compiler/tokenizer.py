@@ -6,7 +6,7 @@ from compiler.Token import Token
 identifier_r = re.compile(r"[a-zA-Z_][a-zA-Z_0-9]*")
 int_literal_r = re.compile(r"[0-9]+")
 operator_r = re.compile(r"==|<=|>=|!=|>|<|-|\+|\*|\/|%|=")
-punctuation_r = re.compile(r"\(|\)|{|}|,|;")
+punctuation_r = re.compile(r"\(|\)|{|}|,|;|:")
 
 
 newline_r = re.compile(r"\n")

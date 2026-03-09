@@ -1,6 +1,7 @@
 
 from dataclasses import dataclass
 from compiler.Loc import Loc
+from compiler.type import Type
 
 
 @dataclass
@@ -48,6 +49,7 @@ class Block(Expression):
 class Var(Expression):
   val: Identifier
   init: Expression
+  type: Type | None = None
 
 @dataclass
 class While(Expression):

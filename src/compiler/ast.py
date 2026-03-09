@@ -1,12 +1,13 @@
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from compiler.Loc import Loc
-from compiler.type import Type
+from compiler.type import Type, Unit
 
 
 @dataclass
 class Expression:
   loc: Loc
+  type: Type = field(kw_only=True, default_factory=lambda: Unit)
   """Base class for AST nodes representing expressions."""
 
 @dataclass
@@ -49,7 +50,6 @@ class Block(Expression):
 class Var(Expression):
   val: Identifier
   init: Expression
-  type: Type | None = None
 
 @dataclass
 class While(Expression):

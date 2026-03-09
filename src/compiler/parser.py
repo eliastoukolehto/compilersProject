@@ -1,6 +1,6 @@
 from compiler.Token import Token
 from compiler import ast, Loc
-from compiler.type import Bool, Int, Type
+from compiler.type import Bool, Int, Type, Unit
 
 precedence_levels = [
   ['='],
@@ -162,7 +162,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
   def parse_var() -> ast.Var:
     if check_var_allowed() is False:
       raise Exception(f'{peek().loc}: "var" is only allowed directly inside blocks {{}} and in top-level expressions')
-    var_type = None
+    var_type = Unit
     var = consume('var')
 
     val = consume()
@@ -180,7 +180,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
       var.loc,
       ast.Identifier(val.loc, val.text),
       init,
-      var_type
+      type = var_type
     )
 
   def parse_block() -> ast.Block:

@@ -71,7 +71,7 @@ def interpret(node: ast.Expression, symtab: SymTab) -> Value:
       return None
 
     case ast.Block():
-      block_tab = SymTab({}, symtab)
+      block_tab = SymTab[Any]({}, symtab)
       for statement in node.statements:
         interpret(statement, block_tab)
       if node.result is None:

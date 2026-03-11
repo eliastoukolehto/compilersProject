@@ -2,7 +2,7 @@
 from compiler import ast, ir, Loc
 from compiler.ir import IRVar
 from compiler.symtab import SymTab
-from compiler.type import Bool, Int
+from compiler.type import Bool, Int, Unit
 
 
 def generate_ir(
@@ -82,18 +82,65 @@ def generate_ir(
         # Ask the symbol table to return the variable that refers
         # to the operator to call.
         var_op = st.require(expr.op)
-        # Recursively emit instructions to calculate the operands.
         var_left = visit(st, expr.left)
-        var_right = visit(st, expr.right)
-        # Generate variable to hold the result.
-        var_result = new_var()
-        # Emit a Call instruction that writes to that variable.
-        ins.append(ir.Call(
-            loc, var_op, [var_left, var_right], var_result))
+
+        if var_op.name == 'and':
+          l_check = new_label(loc)
+          l_skip = new_label(loc)
+          l_end = new_label(loc)
+          var_result = new_var()
+
+          ins.append(ir.CondJump(loc, var_left, l_check, l_skip))
+          ins.append(l_check)
+          var_right = visit(st, expr.right)
+          ins.append(ir.Copy(loc, var_right, var_result))
+          ins.append(ir.Jump(loc, l_end))
+
+          ins.append(l_skip)
+          ins.append(ir.LoadBoolConst(loc, False, var_result))
+          ins.append(ir.Jump(loc, l_end))
+
+          ins.append(l_end)
+ 
+        elif var_op.name == 'or':
+          l_check = new_label(loc)
+          l_skip = new_label(loc)
+          l_end = new_label(loc)
+          var_result = new_var()
+
+          ins.append(ir.CondJump(loc, var_left, l_skip, l_check))
+          ins.append(l_check)
+          var_right = visit(st, expr.right)
+          ins.append(ir.Copy(loc, var_right, var_result))
+          ins.append(ir.Jump(loc, l_end))
+
+          ins.append(l_skip)
+          ins.append(ir.LoadBoolConst(loc, True, var_result))
+          ins.append(ir.Jump(loc, l_end))
+
+          ins.append(l_end)
+
+        elif var_op.name == '=':
+          if isinstance(expr.left, ast.Identifier):
+            var_right = visit(st, expr.right)
+            ins.append(ir.Copy(loc, var_right, var_left))
+            return var_left
+          raise Exception(f'Error: {loc}: Left side of assignment must be a variable name')
+
+        else:
+          var_right = visit(st, expr.right)
+          # Generate variable to hold the result.
+          var_result = new_var()
+          # Emit a Call instruction that writes to that variable.
+          ins.append(ir.Call(
+              loc, var_op, [var_left, var_right], var_result))
         return var_result
 
       case ast.IfStatement():
-        if expr.els is None:
+        if not isinstance(expr.els, ast.Literal):
+          #required for typing reasons
+          raise Exception('invalid else expression')
+        if expr.els.value is Unit:
           # Create (but don't emit) some jump targets.
           l_then = new_label(loc)
           l_end = new_label(loc)
@@ -138,6 +185,58 @@ def generate_ir(
           ins.append(l_end)
 
           return var_unit
+
+      case ast.Function():
+        func = root_symtab.require(f'{expr.name}')
+        var_result = new_var()
+        args = []
+        for ar in expr.args:
+          args.append(visit(st, ar))
+        call = ir.Call(loc, func, args, var_result)
+        ins.append(call)
+
+        return var_result
+
+      case ast.Unary():
+        func = root_symtab.require(f'unary_{expr.op}')
+        var_result = new_var()
+        args = [visit(st, expr.right)]
+        call = ir.Call(loc, func, args, var_result)
+        ins.append(call)
+
+        return var_result
+
+      case ast.Block():
+        block_tab = SymTab[IRVar]({}, st)
+        for statement in expr.statements:
+          visit(block_tab, statement)
+        var_result = visit(block_tab, expr.result)
+        return var_result
+
+      case ast.Var():
+        value = visit(st, expr.init)
+        var_var = new_var()
+        st.add_local(expr.val.name, value)
+        ins.append(ir.Copy(loc, value, var_var))
+        return var_unit
+
+      case ast.While():
+        l_start = new_label(loc)
+        l_body = new_label(loc)
+        l_end = new_label(loc)
+
+        ins.append(l_start)
+        var_cond = visit(st, expr.cond)
+
+        ins.append(ir.CondJump(loc, var_cond, l_body, l_end))
+
+        ins.append(l_body)
+        visit(st, expr.then)
+        ins.append(ir.Jump(loc, l_start))
+
+        ins.append(l_end)
+        return var_unit
+
       case _:
         raise Exception('unknown Expression')
   # We start with a SymTab that maps all available global names

@@ -1,5 +1,5 @@
 from dataclasses import fields
-from compiler import ir
+from compiler import ir, intrinsics
 
 
 class Locals:
@@ -95,6 +95,30 @@ def generate_assembly(instructions: list[ir.Instruction]) -> str:
         emit(f'cmpq $0, {locals.get_ref(insn.cond)}')
         emit(f'jne .L{insn.then_label.name}')
         emit(f'jmp .L{insn.else_label.name}')
+
+      case ir.Call():
+        regs = ['%rdi','%rsi','%rdx','%rcx','r8','r9']
+        all_ins_names = intrinsics.all_intrinsics.keys()
+        if insn.fun.name in all_ins_names:
+          arg_refs = []
+          for arg in insn.args:
+            arg_refs.append(locals.get_ref(arg))
+
+          intrinsics.all_intrinsics['+'](intrinsics.IntrinsicArgs(
+              arg_refs=arg_refs,
+              result_register='%rax',
+              emit=emit
+          ))
+        else:
+          for i, arg in enumerate(insn.args):
+            if i > len(regs):
+              emit(f'pushq {locals.get_ref(arg)}')
+            else:
+              emit(f'movq {locals.get_ref(arg)}, {regs[i]}')
+          emit(f'callq {insn.fun.name}')
+          emit(f'movq %rax, {locals.get_ref(insn.dest)}')
+
+
 
   #restore stack
   emit('movq $0, %rax')

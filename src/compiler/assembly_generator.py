@@ -12,8 +12,9 @@ class Locals:
     self._stack_used = 8 * len(variables)
     l = -8
     for var in variables:
-      self._var_to_location[var] = f'{l}(%rpb)'
+      self._var_to_location[var] = f'{l}(%rbp)'
       l += -8
+    #print(self._var_to_location)
 
   def get_ref(self, v: ir.IRVar) -> str:
     """Returns an Assembly reference like `-24(%rbp)`
@@ -52,14 +53,27 @@ def generate_assembly(instructions: list[ir.Instruction]) -> str:
   lines = []
   def emit(line: str) -> None: lines.append(line)
 
+
   locals = Locals(
     variables=get_all_ir_variables(instructions)
   )
 
-    # ... Emit initial declarations and stack setup here ...
+  #Initial declarations and stack setup
+
+  emit('.extern print_int')
+  emit('.extern print_bool')
+  emit('.extern read_int')
+  emit('.global main')
+  emit('.type main, @function')
+  emit('.section .text')
+
+  emit('main:')
+  emit('pushq %rbp')
+  emit('movq %rsp, %rbp')
+  emit(f'subq ${locals.stack_used()}, %rsp')
 
   for insn in instructions:
-    emit('# ' + str(insn))
+    emit('\n# ' + str(insn))
     match insn:
       case ir.Label():
         emit("")
@@ -116,11 +130,11 @@ def generate_assembly(instructions: list[ir.Instruction]) -> str:
             else:
               emit(f'movq {locals.get_ref(arg)}, {regs[i]}')
           emit(f'callq {insn.fun.name}')
-          emit(f'movq %rax, {locals.get_ref(insn.dest)}')
-
+        emit(f'movq %rax, {locals.get_ref(insn.dest)}')
 
 
   #restore stack
+  emit('\n#Return(None)')
   emit('movq $0, %rax')
   emit('movq %rbp, %rsp')
   emit('popq %rbp')
